@@ -1,0 +1,82 @@
+# infra/ephemeral-runner/terraform.tfvars
+#
+# Copy to terraform.tfvars and fill in. Drives the ephemeral preview
+# environment factory: long-lived LB + serverless NEG + 3 Cloud Run
+# services (preview-gateway, dispatcher, cleanup), plus per-env
+# Compute Engine task VMs spun up on demand.
+
+# GCP project — must match infra/shared/terraform.tfvars.
+project_id = "project-xxxxxxxx-xxxx-xxxx-xxxx"
+region     = "us-central1"
+
+# -----------------------------------------------------------------------------
+# Image tags
+# -----------------------------------------------------------------------------
+# Tag for the three Cloud Run services (preview-gateway + dispatcher +
+# cleanup). Bump after every Cloud-Run-image push and re-apply to roll
+# all three forward together.
+#
+# Set by `scripts\build-and-push.ps1` in the ephemeral repo; that script
+# prints the tag it just pushed. Pattern is `m{N}-<short git sha>`
+# (e.g. `m4-clean-b09ec58`).
+image_tag = "m4-xxxxxxx"
+
+# Tag the dispatcher passes to each task VM (used to pull
+# postgres-seeded / firebase-emulator-seeded / pubsub-relay /
+# edge-proxy from Artifact Registry on VM boot).
+#
+# Versioned independently from `image_tag` because the per-VM platform
+# images change far less often than the orchestration code.
+task_vm_image_tag = "m1-xxxxxxx"
+
+# -----------------------------------------------------------------------------
+# Access control
+# -----------------------------------------------------------------------------
+# IAM principals allowed to invoke the dispatcher Cloud Run service
+# (i.e. who can mint a new preview env).
+#
+# We do NOT grant `roles/run.invoker` directly — humans get
+# `roles/iam.serviceAccountTokenCreator` on the `ephem-runner-cli-caller`
+# SA, which they impersonate via `gcloud auth print-identity-token
+# --impersonate-service-account=...` to obtain a Cloud-Run-bound ID
+# token. See `dispatcher.tf` for the chain.
+#
+# Empty list = nobody can call the dispatcher (terraform apply still
+# succeeds but `preview.ps1` will fail with "Failed to mint identity
+# token").
+dispatcher_invoker_members = [
+  "user:you@example.com",
+  # "group:preview-admins@example.com",
+  # "serviceAccount:ci-bot@<proj>.iam.gserviceaccount.com",
+]
+
+# -----------------------------------------------------------------------------
+# Optional overrides — defaults in variables.tf are sane for the POC
+# -----------------------------------------------------------------------------
+
+# Compute zone for the per-env VMs. Must be in `region` above.
+# task_vm_zone = "us-central1-a"
+
+# Default GitHub repo the dispatcher tells task VMs to clone. Override
+# in the POST /environments body if you need a different repo per call.
+# default_repo_url = "https://github.com/turkeydave/ephemeral.git"
+
+# Default branch for the clone.
+# default_branch = "main"
+
+# Resource name prefix. Kept distinct from sse-temp's prefix so the two
+# stacks don't collide in the shared project.
+# name_prefix = "ephem-runner"
+
+# Cloud Run Direct VPC egress subnet CIDR. Must be at least /26 (Cloud
+# Run requirement) AND outside the default-network auto-mode range
+# 10.128.0.0/9.
+# egress_subnet_cidr = "10.10.0.0/26"
+
+# Network tag set on each task VM. The narrow firewall rule
+# (`gw-to-vm-8080`) targets this tag so only gateway-egress traffic can
+# reach VM:8080.
+# vm_target_tag = "ephem-runner-vm"
+
+# Artifact Registry repo ID — must match infra/shared/.
+# ephem_runner_repo_id = "ephemeral-runner"

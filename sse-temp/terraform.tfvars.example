@@ -1,0 +1,9 @@
+project_id    = "your-personal-project-id"
+region        = "us-central1"
+backend_image = "us-central1-docker.pkg.dev/your-personal-project-id/temp-sse-poc/temp-sse-backend:latest"
+gateway_image = "us-central1-docker.pkg.dev/your-personal-project-id/temp-sse-poc/temp-sse-gateway:latest"
+client_image  = "us-central1-docker.pkg.dev/your-personal-project-id/temp-sse-poc/temp-sse-client:latest"
+app_jwt_secret_value = "choose-a-demo-secret-you-will-also-paste-into-the-client"
+
+# Optional
+# allowed_origins = ["http://localhost:3000"]

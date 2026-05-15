@@ -1,0 +1,115 @@
+# =============================================================================
+# Terraform
+# =============================================================================
+
+# Local provider plugins, modules, and the working dir. Re-fetched by
+# `terraform init`. Per-stack — every subdir (shared/, ephemeral-runner/,
+# sse-temp/) gets its own.
+**/.terraform/
+
+# Local state files. NEVER commit — they routinely contain secrets
+# (service-account keys, private IPs, generated tokens, etc.) and they
+# get clobbered by anyone else who runs `apply`. Use a remote backend
+# (GCS / S3) for shared state.
+**/*.tfstate
+**/*.tfstate.*
+
+# State lock file written during apply. Stale ones leak across machines.
+**/.terraform.tfstate.lock.info
+
+# Crash logs from terraform itself.
+crash.log
+crash.*.log
+
+# Local override files — `_override.tf` is the convention for
+# machine-local tweaks that should never propagate.
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# CLI plan output. Often large + may include sensitive diffs.
+*.tfplan
+*.tfplan.binary
+
+# CLI configuration (rarely needed in repo).
+.terraformrc
+terraform.rc
+
+# -----------------------------------------------------------------------------
+# tfvars policy
+# -----------------------------------------------------------------------------
+# tfvars often contains values that vary per developer/environment
+# (project IDs, emails in invoker lists, image tags that drift on every
+# build). Default to ignoring everything except a *.tfvars.example
+# template you commit by hand.
+#
+# If this repo is private and you actually want one canonical tfvars
+# checked in (POC-style), comment out the next two lines AND keep the
+# .example commit-pattern as a safety net.
+*.tfvars
+*.auto.tfvars
+!*.tfvars.example
+!*.auto.tfvars.example
+
+# DO commit the lock file — it pins provider versions across machines.
+# (Shown here for clarity; not actually ignored.)
+# !.terraform.lock.hcl
+
+# =============================================================================
+# Cloud / credential leakage
+# =============================================================================
+
+# Service account key files — must NEVER be committed. The POC uses ADC
+# + impersonation so these shouldn't exist, but block them anyway.
+*-key.json
+*credentials*.json
+*service-account*.json
+gcp-key*.json
+
+# Generic env files that may carry secrets.
+.env
+.env.*
+!.env.example
+
+# =============================================================================
+# Editor / IDE / OS noise
+# =============================================================================
+
+# JetBrains
+.idea/
+*.iml
+
+# VS Code: workspace settings can be committed selectively; default ignore.
+.vscode/
+
+# Vim / Emacs / generic backups
+*.swp
+*.swo
+*~
+\#*\#
+.\#*
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# =============================================================================
+# Misc
+# =============================================================================
+
+# Anything dropped under a top-level `tmp/` or `scratch/` is local.
+/tmp/
+/scratch/
+
+# Commit-message scratch files (the workflow we use to side-step
+# PowerShell quoting issues; messages live in $env:TEMP, but block any
+# accidental in-repo strays).
+.commit-msg-tmp

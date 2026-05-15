@@ -1,0 +1,19 @@
+# infra/shared/terraform.tfvars
+#
+# Copy to terraform.tfvars and fill in. Project-wide bootstrap values
+# used by every other stack in this repo.
+
+# GCP project where everything lands. The POC reuses one personal
+# project for the runner + sse-temp stacks; resources are name-prefixed
+# (`ephem-runner-*`, `temp-sse-*`) to avoid collisions.
+project_id = "project-xxxxxxxx-xxxx-xxxx-xxxx"
+
+# Default region. Must match the region used by sibling stacks
+# (ephemeral-runner, sse-temp) — Artifact Registry, Cloud Run,
+# Firestore, and the LB egress subnet are all single-region.
+region = "us-central1"
+
+# (Optional) Artifact Registry repo ID for the ephemeral-runner POC
+# images. Default in variables.tf is "ephemeral-runner" — only override
+# if you need a non-default name.
+# ephem_runner_repo_id = "ephemeral-runner"
